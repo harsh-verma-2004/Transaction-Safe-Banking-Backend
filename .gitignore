@@ -1,0 +1,43 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env/
+.env.*
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+media/
+
+# PostgreSQL / environment configs
+*.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# Migrations cache
+**/migrations/__pycache__/
+
+# Coverage / testing
+.coverage
+htmlcov/
+
+# Build files
+dist/
+build/
+
+# Jupyter notebooks
+.ipynb_checkpoints/
