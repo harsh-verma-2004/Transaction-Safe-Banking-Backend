@@ -4,6 +4,10 @@ from wallets.models import Wallet
 from transactions.models import Transaction, Transfer
 from audits.models import AuditLog
 from services.fraud_service import evaluate_transfer_risk
+from accounts.models import Account
+from services.cache_service import invalidate_wallet
+from services.cache_service import get_wallet_balance, set_wallet_balance
+from services.tasks import run_fraud_detection
 
 def transfer_funds(
     *,
@@ -25,6 +29,14 @@ def transfer_funds(
         existing_transfer = Transfer.objects.filter(reference_id=reference_id).first()
         if existing_transfer:
             return {"status": "duplicate_request"}
+        
+        # 🔐 Ownership validation
+        from_account = Account.objects.get(id=from_account_id)
+
+        if from_account.user != initiated_by:
+            raise ValidationError("Unauthorized: You cannot transfer from this account")
+
+
 
         sender_wallet = Wallet.objects.select_for_update().get(
             account_id=from_account_id
@@ -34,8 +46,17 @@ def transfer_funds(
             account_id=to_account_id
         )
 
-        if sender_wallet.balance < amount:
+
+        cached_balance = get_wallet_balance(from_account_id)
+        if cached_balance is not None:
+            current_balance = cached_balance
+        else:
+            current_balance = float(sender_wallet.balance)
+            set_wallet_balance(from_account_id, current_balance)
+
+        if current_balance < float(amount):
             raise ValidationError("Insufficient balance")
+
 
         # Create transfer record (pending)
         transfer = Transfer.objects.create(
@@ -53,6 +74,10 @@ def transfer_funds(
 
             sender_wallet.save()
             receiver_wallet.save()
+
+            # Invalidate cache after update
+            invalidate_wallet(from_account_id)
+            invalidate_wallet(to_account_id)
 
             # Ledger entries
             Transaction.objects.create(
@@ -77,8 +102,7 @@ def transfer_funds(
             transfer.save()
 
             # Run fraud evaluation (non-blocking logic)
-            evaluate_transfer_risk(transfer)
-
+            run_fraud_detection.delay(transfer.id)
 
             AuditLog.objects.create(
                 user=initiated_by,
