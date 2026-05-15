@@ -1,0 +1,77 @@
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@layer utilities {
+  .animate-fade-up {
+    animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.4s ease-out both;
+  }
+
+  .animate-stagger-1 {
+    animation-delay: 0.05s;
+  }
+  .animate-stagger-2 {
+    animation-delay: 0.1s;
+  }
+  .animate-stagger-3 {
+    animation-delay: 0.15s;
+  }
+  .animate-stagger-4 {
+    animation-delay: 0.2s;
+  }
+  .animate-stagger-5 {
+    animation-delay: 0.25s;
+  }
+
+  .banking-mesh {
+    background-image:
+      radial-gradient(
+        ellipse 80% 50% at 50% -20%,
+        color-mix(in oklch, var(--primary) 18%, transparent),
+        transparent
+      ),
+      radial-gradient(
+        ellipse 60% 40% at 100% 0%,
+        color-mix(in oklch, var(--chart-2) 12%, transparent),
+        transparent
+      ),
+      radial-gradient(
+        ellipse 50% 30% at 0% 100%,
+        color-mix(in oklch, var(--primary) 8%, transparent),
+        transparent
+      );
+  }
+
+  .glass-nav {
+    @apply border-b border-border/60 bg-background/75 backdrop-blur-xl supports-backdrop-filter:bg-background/60;
+  }
+}
